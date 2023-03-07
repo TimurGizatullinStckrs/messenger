@@ -1,0 +1,210 @@
+@startuml
+participant Frontend
+participant Backend
+participant Postgres
+participant Redis
+
+
+== get dialogs with last message==
+Frontend -> Backend: HTTP GET: /api/dialogs/ (auth_token)
+Backend -> Postgres: PSQL: Get user by token
+
+alt token not found
+Backend --x Frontend: HTTP: 401
+end alt
+
+alt token not found
+Backend --x Frontend: HTTP: 404
+end alt
+
+Postgres --> Backend: PSQL: user
+Backend -> Postgres: PSQL: Get dialogs by user.id
+Postgres --> Backend: PSQL: dialogs
+Backend --> Frontend: HTTP: dialogs
+
+
+== Create dialog with new user ==
+Frontend -> Backend: HTTP POST: /api/dialogs (new_dialog_model){crnt_user, companion_user, crnt_user_token}
+Backend -> Postgres: PSQL: get user by token
+Postgres --> Backend: PSQL: user
+
+alt token not found
+Backend --x Frontend: HTTP: 401
+end alt
+
+Backend -> Postgres: PSQL: get dialog by crnt_user.id & companion_user.id + opposite
+Postgres --> Backend: PSQL: None
+Backend -> Backend: Checks Postgres's requests is None
+
+alt dialog exists
+Backend --x Frontend: HTTP: 400
+end alt
+
+Backend -> Postgres: PSQL: create new dialog
+Postgres --> Backend: PSQL: dialog.id
+Backend --> Frontend: HTTP: dialog.id
+
+
+== Get messages with pagination ==
+Frontend -> Backend: HTTP GET: api/dialogs/{id}/count/{message_page} (auth_token)
+Backend -> Postgres: PSQL: get dialog by id
+Postgres --> Backend: PSQL: dialog
+Backend -> Postgres: PSQL: get user by token
+Postgres --> Backend: PSQL: user
+Backend -> Backend: Check dialog existing
+
+alt dialog doesn't exist
+Backend --x Frontend: HTTP: 404
+end alt
+
+Backend -> Backend: Check if user is a member of dialog
+
+alt user is unauthorized
+Backend --x Frontend: HTTP: 403
+end alt
+
+
+Backend -> Postgres: PSQL: get from (message_page*10) to (message_page*10+10) messages by diaolog.id
+Postgres --> Backend: PSQL: 10 messages
+Backend --> Frontend: 10 messages
+
+
+== Add message to dialog with real-time updating==
+Frontend -> Backend: HTPP POST: api/dialog/{id} (message_request) (auth_token)
+Backend -> Postgres: PSQL: get dialog by id
+Postgres --> Backend: PSQL: dialog
+Backend -> Postgres: PSQL: get user by token
+Postgres --> Backend: PSQL: user
+Backend -> Backend: Check dialog existing
+
+alt dialog doesn't exist
+Backend --x Frontend: HTTP: 404
+end alt
+
+Backend -> Backend: Check if user is a member of dialog
+
+alt user is not a member
+Backend --x Frontend: HTTP: 403
+end alt
+Backend -> Postgres: PSQL: insert new message to dialog.id
+Postgres --> Backend: PSQL: message.id
+Backend --> Frontend: WS: message.id
+
+
+== Another way to add message to dialog with real-time updating==
+Frontend -> Backend: HTPP POST: api/dialog/{id} (message_request) (auth_token)
+Backend -> Postgres: PSQL: get dialog by id
+Postgres --> Backend: PSQL: dialog
+Backend -> Postgres: PSQL: get user by token
+Postgres --> Backend: PSQL: user
+Backend -> Backend: Check dialog existing
+
+alt dialog doesn't exist
+Backend --x Frontend: HTTP: 404
+end alt
+
+Backend -> Backend: Check if user is a member of dialog
+
+alt user is not a member
+Backend --x Frontend: HTTP: 403
+end alt
+
+Backend -> Postgres: PSQL: insert new message to dialog.id
+Postgres --> Backend: PSQL: message.id
+
+Backend -> Backend: WS: consume message
+Backend --> Frontend: WS: message
+
+
+== Delete Message ==
+Frontend -> Backend: HTTP Delete: api/messages/{id} (auth_token)
+Backend -> Postgres: PSQL: get user by token
+Postgres --> Backend: PSQL: user
+Backend -> Postgres: PSQL: Get message by id
+Postgres --> Backend: PSQL: message
+Backend -> Backend: Update message.is_deleted on True
+Backend -> Postgres: PSQL: Update entity
+Backend --> Frontend: HTTP: 204
+
+
+== Reply on message ==
+Frontend -> Backend: HTTP POST: api/messages/{id} (new_mesage_model)
+Backend -> Postgres: PSQL: Get parent_message by id
+Postgres --> Backend: PSQL: parent_message
+Backend -> Backend: new_message_model.parent is equal parent_message
+Backend -> Postgres: PSQL: insert new message
+Postgres --> Backend: PSQL: new_message.id
+Backend --> Frontend: HTTP: new_message.id
+
+
+== Forward message ==
+Frontend -> Backend: HTTP PATCH: api/messages/{id} (dialog_id)
+Backend -> Postgres: PSQL: Get message by id
+Postgres --> Backend: PSQL: message_to_forward
+Backend -> Postgres: PSQL: get dialog by id
+Postgres --> Backend: PSQL: dialog
+Backend -> Backend: dialog.messages add message_to_forward
+Backend -> Postgres: PSQL: Update entity
+Backend --> Frontend: HTTP: 204
+
+
+== Registration ==
+Frontend -> Backend: HTTP POST: api/auth/signup (registration_model)
+
+alt data is not valid
+Backend --x Frontend: HTTP: 422
+end alt
+
+
+Backend -> Postgres: PSQL: Get user by registration_model.email
+Postgres --> Backend: PSQL: None
+
+alt User with similar email exists
+Backend --x Frontend: HTTP: 409
+end alt
+
+Backend -> Backend: Create auth_token and implement this to reg_model
+Backend -> Backend: Cipher password and update reg_model
+Backend -> Postgres: PSQL: Insert new_user to DB
+Postgres --> Backend: PSQL: new_user.id
+Backend --> Frontend: HTTP: new_user.id
+
+
+== login ==
+Frontend -> Backend: HTTP POST: api/auth/login (login_model)
+Backend -> Postgres: PSQL: Get user by login_model.email
+Postgres --> Backend: PSQL: user_data_to_compare
+Backend -> Backend: Compare data from Frontend and Postgres
+
+alt data is not similar
+Backend --x Frontend: HTTP: 400
+end alt
+
+Backend --> Frontend: HTTP: Token
+
+
+== Get users with pagination ==
+Frontend -> Backend: HTTP GET: api/users/page/{page}
+Backend -> Postgres: PSQL: Get users in range (page*10, page*10+10)
+Postgres --> Backend: PSQL: 10 users
+Backend --> Frontend: 10 users
+
+== Find user ==
+Frontend -> Backend: HTTP GET: api/users/ (user_email)
+Backend -> Postgres: PSQL: Get user by email
+Postgres --> Backend: PSQL: user
+Backend --> Frontend: HTTP: user
+
+
+== Upload profile pic ==
+Frontend -> Backend: HTTP PATCH: api/users/{id} (pic_to_upload) (auth_token)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token is not found
+Backend --x Frontend: HTTP: 404
+end alt
+
+Backend -> Backend: Update user_model
+Backend -> Postgres: PSQL: Update entity
+Backend --> Frontend: HTTP: 204
+@enduml
