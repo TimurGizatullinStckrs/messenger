@@ -1,0 +1,59 @@
+@startuml
+entity Dialog {
+* pk
+__
+*create_at: datetime <<generated>>
+update_at: datetime <<generated>>
+}
+
+entity Message {
+* pk
+__
+*author_id: number <<FK>>
+text: text
+picture: ???
+*send_at: datetime <<generated>>
+}
+
+entity User {
+* pk
+__
+*email: text
+*password: text
+*register_date: Date <<generated>>
+update_date: Date
+profile_picture: ???
+}
+
+entity DialogUser {
+* pk
+__
+* dialog_id: Number <<FK>>
+* user_id: Number <<FK>>
+}
+
+entity DialogMessage {
+* pk
+__
+* dialog_id: Number <<FK>>
+* message_id: Number <<FK>>
+}
+
+entity MessageMessage {
+* pk
+__
+* parent_message_id: Number <<FK>>
+* message_id: Number <<FK>>
+}
+
+DialogUser }|-- User
+DialogUser }|-- Dialog
+
+DialogMessage }|-- Message
+DialogMessage }|-- Dialog
+
+MessageMessage }|-- Message
+MessageMessage }|-- Message
+
+User ||--|| Message
+@enduml
