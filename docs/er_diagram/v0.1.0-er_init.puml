@@ -4,6 +4,7 @@ entity Chat {
 __
 *created_at: datetime <<generated>>
 updated_at: datetime <<generated>>
+*is_dialog: bool
 }
 
 entity Message {
@@ -13,7 +14,7 @@ __
 *chat_id: number <<FK>>
 reply_to: number <<FK>>
 text: text
-picture: path
+picture: text <<PATH>>
 *sent_at: datetime <<generated>>
 }
 
@@ -26,7 +27,7 @@ __
 name: text
 surname: text
 updated_date: Date
-profile_picture: path
+profile_picture: text <<PATH>>
 }
 
 entity ChatUser {
@@ -43,4 +44,6 @@ ChatUser }|-- Chat
 
 Message }|-- User
 Message }|-- Chat
+
+Message ||--|| Message
 @enduml
