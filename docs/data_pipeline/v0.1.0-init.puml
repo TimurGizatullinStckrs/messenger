@@ -173,10 +173,18 @@ Backend --> Frontend: HTTP: Token
 
 
 == Get users with pagination ==
-Frontend -> Backend: HTTP GET: api/users/page/{page}
-Backend -> Postgres: PSQL: Get users in range (page*10, page*10+10)
-Postgres --> Backend: PSQL: 10 users
-Backend --> Frontend: 10 users
+Frontend -> Backend: HTTP GET: /api/users/ (limit + offset + auth_token)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
+end alt
+
+Postgres --> Backend: PSQL: user
+Backend -> Postgres: PSQL: Get users on limit + offset filter
+Postgres --> Backend: PSQL:users
+Backend --> Frontend: users
 
 == Find user ==
 Frontend -> Backend: HTTP GET: api/users/ (user_email)
