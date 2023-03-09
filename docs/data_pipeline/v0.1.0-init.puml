@@ -17,29 +17,31 @@ end alt
 Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Get chats by user.id
 Postgres --> Backend: PSQL: chats
-Backend -> Postgres: PSQL: Get last message by chat.id foreach chat
-Postgres --> Backend: PSQL: last messages for each chat
+loop for chat in chats
+Backend -> Postgres: PSQL: Get last message by chat.id
+Postgres --> Backend: PSQL: last messages
+end loop
 Backend --> Frontend: HTTP: chats with last message
 
 
 == Create chat ==
-Frontend -> Backend: HTTP POST: /api/chats/ (companion_user + crnt_user_token)
-Backend -> Postgres: PSQL: get crnt_user by crnt_user_token
-Postgres --> Backend: PSQL: crnt_user
+Frontend -> Backend: HTTP POST: /api/chats/ (user_id + auth_token)
+Backend -> Postgres: PSQL: get user by auth_token
 
 alt token not found
 Postgres --x Backend: PSQL: Not found
 Backend --x Frontend: HTTP: 401
 end alt
 
-Backend -> Postgres: PSQL: get chats by crnt_user.id where chat.is_dialog is true and chats doesn't contains companion user
-Postgres --> Backend: None
+Postgres --> Backend: PSQL: user
+Backend -> Postgres: PSQL: get chats by user.id where chat.is_dialog is true and chats doesn't contains companion user
 
 alt chat exists
 Postgres --> Backend: PSQL: chats
 Backend --x Frontend: HTTP: 400
 end alt
 
+Postgres --> Backend: None
 Backend -> Postgres: PSQL: create new chat
 Postgres --> Backend: PSQL: chat
 Backend --> Frontend: HTTP: chat
@@ -55,13 +57,13 @@ Backend --> Frontend: HTTP: 401
 end alt
 
 Postgres --> Backend: PSQL: user
-Backend -> Postgres: PSQL: get messages by chat.id with limit offset pagination filter
+Backend -> Postgres: PSQL: get messages by id with limit offset pagination filter
 Postgres --> Backend: PSQL: messages
 Backend --> Frontend: messages
 
 
 == Add message to chat with real-time updating==
-Frontend -> Backend: HTTP POST: /api/chat/{id}/ (text + pic) (auth_token)
+Frontend -> Backend: HTTP POST: /api/chat/{id}/ (text + pic + reply_to) (auth_token)
 Backend -> Postgres: PSQL: Get user by auth_token
 
 alt token not found
@@ -78,7 +80,7 @@ end alt
 
 Backend -> Postgres: PSQL: get chat by id
 Postgres --> Backend: PSQL: chat
-Backend -> Postgres: PSQL: insert new message to chat.id
+Backend -> Postgres: PSQL: insert new message to chat
 Postgres --> Backend: PSQL: message
 Backend -> Frontend: WS: message
 Frontend --> Backend: WS: ok
@@ -97,35 +99,13 @@ end alt
 Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Delete message by id
 Postgres --> Backend: PSQL: ok
+Backend -> Frontend: WS: message removed
+Frontend --> Backend: WS: ok
 Backend --> Frontend: HTTP: 204
-
-
-== Reply on message ==
-Frontend -> Backend: HTTP POST: /api/messages/{id}/ (text + pic + reply_to_id)
-Backend -> Postgres: PSQL: Get user by auth_token
-
-alt token not found
-Postgres --x Backend: PSQL: Not Found
-Backend --x Frontend: HTTP: 401
-end alt
-
-Postgres --> Backend: PSQL: user
-Backend -> Backend: Check if text or pic not None
-
-alt text and pic is None
-Backend --x Frontend: HTTP: 400
-end alt
-
-Backend -> Postgres: PSQL: Get reply_to_message by id
-Postgres --> Backend: PSQL: reply_to_message
-Backend -> Backend: new_message_model.reply_to is equal reply_to_message
-Backend -> Postgres: PSQL: insert new message
-Postgres --> Backend: PSQL: new_message
-Backend --> Frontend: HTTP: new_message
 
 
 == Forward message ==
-Frontend -> Backend: HTTP PATCH: /api/messages/{id}/ (chat_to_forward_id)
+Frontend -> Backend: HTTP POST: /api/messages/forward/ (message_ids + forward_to_id + auth_token)
 Backend -> Postgres: PSQL: Get user by auth_token
 
 alt token not found
@@ -134,15 +114,18 @@ Backend --x Frontend: HTTP: 401
 end alt
 
 Postgres --> Backend: PSQL: user
-Backend -> Postgres: PSQL: Get message by id
-Postgres --> Backend: PSQL: message_to_forward
-Backend -> Postgres: PSQL: get chat_to_forward by chat_to_forward_id
-Postgres --> Backend: PSQL: chat_to_forward
-Backend -> Backend: chat_to_forward.messages add message_to_forward
-Backend -> Postgres: PSQL: Update entity
-Postgres --> Backend: PSQL: OK
-Backend --> Frontend: HTTP: 204
-
+Backend -> Postgres: PSQL: Get messages by id using id__in(message_ids)
+Postgres --> Backend: PSQL: messages_to_forward
+loop for message in messages_to_forward
+Backend -> Backend: message.forward_by = user.id and clean id or copy obj
+end loop
+Backend -> Postgres: PSQL: get dialog by forward_to_id
+Postgres --> Backend: PSQL: dialog
+Backend -> Postgres: PSQL: Insert new_message
+Postgres --> Backend: PSQL: message
+Backend -> Frontend: WS: message
+Frontend --> Backend: WS: ok
+Backend --> Frontend: HTTP: 201
 
 == Registration ==
 Frontend -> Backend: HTTP POST: /api/auth/sign_up/ (registration_model)
