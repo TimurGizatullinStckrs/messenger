@@ -187,8 +187,16 @@ Postgres --> Backend: PSQL:users
 Backend --> Frontend: users
 
 == Find user ==
-Frontend -> Backend: HTTP GET: api/users/ (user_email)
-Backend -> Postgres: PSQL: Get user by email
+Frontend -> Backend: HTTP GET: /api/users/ (user_to_find + auth_token)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
+end alt
+
+Postgres --> Backend: PSQL: user
+Backend -> Postgres: PSQL: Get user with filter string__contains = 'user_to_find'
 Postgres --> Backend: PSQL: user
 Backend --> Frontend: HTTP: user
 
