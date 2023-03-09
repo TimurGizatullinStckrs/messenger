@@ -35,14 +35,14 @@ end alt
 Backend -> Postgres: PSQL: get chats by crnt_user.id where dialog.is_dialog is true and chats doesn't contains companion user
 Postgres --> Backend: None
 
-alt dialog exists
+alt chat exists
 Postgres --> Backend: PSQL: chats
 Backend --x Frontend: HTTP: 400
 end alt
 
-Backend -> Postgres: PSQL: create new dialog
-Postgres --> Backend: PSQL: dialog
-Backend --> Frontend: HTTP: dialog
+Backend -> Postgres: PSQL: create new chat
+Postgres --> Backend: PSQL: chat
+Backend --> Frontend: HTTP: chat
 
 
 == Get messages with pagination ==
