@@ -101,13 +101,27 @@ Backend --> Frontend: HTTP: 204
 
 
 == Reply on message ==
-Frontend -> Backend: HTTP POST: api/messages/{id} (new_mesage_model)
-Backend -> Postgres: PSQL: Get parent_message by id
-Postgres --> Backend: PSQL: parent_message
-Backend -> Backend: new_message_model.parent is equal parent_message
+Frontend -> Backend: HTTP POST: /api/messages/{id}/ (text + pic + reply_to_id)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
+end alt
+
+Postgres --> Backend: PSQL: user
+Backend -> Backend: Check if text or pic not None
+
+alt text and pic is None
+Backend --x Frontend: HTTP: 400
+end alt
+
+Backend -> Postgres: PSQL: Get reply_to_message by id
+Postgres --> Backend: PSQL: reply_to_message
+Backend -> Backend: new_message_model.reply_to is equal reply_to_message
 Backend -> Postgres: PSQL: insert new message
-Postgres --> Backend: PSQL: new_message.id
-Backend --> Frontend: HTTP: new_message.id
+Postgres --> Backend: PSQL: new_message
+Backend --> Frontend: HTTP: new_message
 
 
 == Forward message ==
