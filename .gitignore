@@ -245,5 +245,6 @@ poetry.toml
 
 # ruff
 .ruff_cache/
+.python-version
 
 # End of https://www.toptal.com/developers/gitignore/api/python,pycharm
