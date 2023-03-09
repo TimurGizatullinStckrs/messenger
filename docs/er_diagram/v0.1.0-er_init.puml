@@ -15,6 +15,7 @@ __
 reply_to: number <<FK>>
 text: text
 picture: text <<PATH>>
+forward_by: number <<FK>>
 *sent_at: datetime <<generated>>
 }
 
@@ -23,10 +24,10 @@ entity User {
 __
 *email: text
 *password: text
-*registered_date: Date <<generated>>
+*registered_at: datetime <<generated>>
 name: text
 surname: text
-updated_date: Date
+updated_at: datetime
 profile_picture: text <<PATH>>
 }
 
