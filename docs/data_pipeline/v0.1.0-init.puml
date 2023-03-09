@@ -6,43 +6,43 @@ participant Redis
 
 
 == get dialogs with last message==
-Frontend -> Backend: HTTP GET: /api/dialogs/ (auth_token)
+Frontend -> Backend: HTTP GET: /api/chats/ (auth_token)
 Backend -> Postgres: PSQL: Get user by token
 
 alt token not found
+Postgres --x Backend: PSQL: Not found
 Backend --x Frontend: HTTP: 401
 end alt
 
-alt token not found
-Backend --x Frontend: HTTP: 404
-end alt
-
 Postgres --> Backend: PSQL: user
-Backend -> Postgres: PSQL: Get dialogs by user.id
-Postgres --> Backend: PSQL: dialogs
-Backend --> Frontend: HTTP: dialogs
+Backend -> Postgres: PSQL: Get chats by user.id
+Postgres --> Backend: PSQL: chats
+Backend -> Postgres: PSQL: Get last message by dialog.id foreach dialog
+Postgres --> Backend: PSQL: last messages for each dialog
+Backend --> Frontend: HTTP: chats with last message
 
 
-== Create dialog with new user ==
-Frontend -> Backend: HTTP POST: /api/dialogs (new_dialog_model){crnt_user, companion_user, crnt_user_token}
-Backend -> Postgres: PSQL: get user by token
-Postgres --> Backend: PSQL: user
+== Create chat ==
+Frontend -> Backend: HTTP POST: /api/chats/ (companion_user + crnt_user_token)
+Backend -> Postgres: PSQL: get crnt_user by crnt_user_token
+Postgres --> Backend: PSQL: crnt_user
 
 alt token not found
+Postgres --x Backend: PSQL: Not found
 Backend --x Frontend: HTTP: 401
 end alt
 
-Backend -> Postgres: PSQL: get dialog by crnt_user.id & companion_user.id + opposite
-Postgres --> Backend: PSQL: None
-Backend -> Backend: Checks Postgres's requests is None
+Backend -> Postgres: PSQL: get chats by crnt_user.id where dialog.is_dialog is true and chats doesn't contains companion user
+Postgres --> Backend: None
 
 alt dialog exists
+Postgres --> Backend: PSQL: chats
 Backend --x Frontend: HTTP: 400
 end alt
 
 Backend -> Postgres: PSQL: create new dialog
-Postgres --> Backend: PSQL: dialog.id
-Backend --> Frontend: HTTP: dialog.id
+Postgres --> Backend: PSQL: dialog
+Backend --> Frontend: HTTP: dialog
 
 
 == Get messages with pagination ==
