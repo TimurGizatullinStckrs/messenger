@@ -5,7 +5,7 @@ participant Postgres
 participant Redis
 
 
-== get dialogs with last message==
+== get chats with last message==
 Frontend -> Backend: HTTP GET: /api/chats/ (auth_token)
 Backend -> Postgres: PSQL: Get user by token
 
@@ -17,8 +17,8 @@ end alt
 Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Get chats by user.id
 Postgres --> Backend: PSQL: chats
-Backend -> Postgres: PSQL: Get last message by dialog.id foreach dialog
-Postgres --> Backend: PSQL: last messages for each dialog
+Backend -> Postgres: PSQL: Get last message by chat.id foreach chat
+Postgres --> Backend: PSQL: last messages for each chat
 Backend --> Frontend: HTTP: chats with last message
 
 
@@ -32,7 +32,7 @@ Postgres --x Backend: PSQL: Not found
 Backend --x Frontend: HTTP: 401
 end alt
 
-Backend -> Postgres: PSQL: get chats by crnt_user.id where dialog.is_dialog is true and chats doesn't contains companion user
+Backend -> Postgres: PSQL: get chats by crnt_user.id where chat.is_dialog is true and chats doesn't contains companion user
 Postgres --> Backend: None
 
 alt chat exists
@@ -61,7 +61,7 @@ Backend --> Frontend: messages
 
 
 == Add message to chat with real-time updating==
-Frontend -> Backend: HTPP POST: /api/chat/{id}/ (text + pic) (auth_token)
+Frontend -> Backend: HTTP POST: /api/chat/{id}/ (text + pic) (auth_token)
 Backend -> Postgres: PSQL: Get user by auth_token
 
 alt token not found
@@ -86,7 +86,7 @@ Backend --> Frontend: HTTP: 201
 
 
 == Delete Message ==
-Frontend -> Backend: HTTP Delete: /api/messages/{id}/ (auth_token)
+Frontend -> Backend: HTTP DELETE: /api/messages/{id}/ (auth_token)
 Backend -> Postgres: PSQL: get user by auth_token
 
 alt token not found
@@ -125,7 +125,7 @@ Backend --> Frontend: HTTP: new_message
 
 
 == Forward message ==
-Frontend -> Backend: HTTP PATCH: /api/messages/{id}/ (dialog_to_forward_id)
+Frontend -> Backend: HTTP PATCH: /api/messages/{id}/ (chat_to_forward_id)
 Backend -> Postgres: PSQL: Get user by auth_token
 
 alt token not found
@@ -136,11 +136,11 @@ end alt
 Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Get message by id
 Postgres --> Backend: PSQL: message_to_forward
-Backend -> Postgres: PSQL: get dialog_to_forward by dialog_to_forward_id
-Postgres --> Backend: PSQL: dialog_to_forward
-Backend -> Backend: dialog_to_forward.messages add message_to_forward
+Backend -> Postgres: PSQL: get chat_to_forward by chat_to_forward_id
+Postgres --> Backend: PSQL: chat_to_forward
+Backend -> Backend: chat_to_forward.messages add message_to_forward
 Backend -> Postgres: PSQL: Update entity
-Postgres --> OK
+Postgres --> Backend: PSQL: OK
 Backend --> Frontend: HTTP: 204
 
 
@@ -202,14 +202,18 @@ Backend --> Frontend: HTTP: user
 
 
 == Upload profile pic ==
-Frontend -> Backend: HTTP PATCH: api/users/{id} (pic_to_upload) (auth_token)
+Frontend -> Backend: HTTP PATCH: /api/users/{id}/ (pic_to_upload + auth_token)
 Backend -> Postgres: PSQL: Get user by auth_token
 
-alt token is not found
-Backend --x Frontend: HTTP: 404
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
 end alt
 
-Backend -> Backend: Update user_model
+Postgres --> Backend: PSQL: user
+
+Backend -> Backend: Save pic_to_upload to media set path to user.pic
 Backend -> Postgres: PSQL: Update entity
+Postgres --> Backend: PSQL OK
 Backend --> Frontend: HTTP: 204
 @enduml
