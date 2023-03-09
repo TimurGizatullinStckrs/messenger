@@ -61,7 +61,7 @@ Backend --> Frontend: messages
 
 
 == Add message to chat with real-time updating==
-Frontend -> Backend: HTPP POST: api/chat/{id} (text + pic) (auth_token)
+Frontend -> Backend: HTPP POST: /api/chat/{id}/ (text + pic) (auth_token)
 Backend -> Postgres: PSQL: Get user by auth_token
 
 alt token not found
@@ -86,13 +86,17 @@ Backend --> Frontend: HTTP: 201
 
 
 == Delete Message ==
-Frontend -> Backend: HTTP Delete: api/messages/{id} (auth_token)
-Backend -> Postgres: PSQL: get user by token
+Frontend -> Backend: HTTP Delete: /api/messages/{id}/ (auth_token)
+Backend -> Postgres: PSQL: get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not found
+Backend --x Frontend: HTTP: 401
+end alt
+
 Postgres --> Backend: PSQL: user
-Backend -> Postgres: PSQL: Get message by id
-Postgres --> Backend: PSQL: message
-Backend -> Backend: Update message.is_deleted on True
-Backend -> Postgres: PSQL: Update entity
+Backend -> Postgres: PSQL: Delete message by id
+Postgres --> Backend: PSQL: ok
 Backend --> Frontend: HTTP: 204
 
 
