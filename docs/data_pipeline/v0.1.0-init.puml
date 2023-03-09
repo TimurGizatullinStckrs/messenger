@@ -48,38 +48,41 @@ Backend --> Frontend: HTTP: chat
 == Get messages with pagination ==
 Frontend -> Backend: HTTP GET: /api/chats/{id}/messages/ (auth_token + limit + offset)
 Backend -> Postgres: PSQL: Get user by auth_token
-Postgres --> Backend: PSQL: user
 
 alt token not found
 Postgres --> Backend: PSQL: Not found
 Backend --> Frontend: HTTP: 401
 end alt
 
+Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: get messages by chat.id with limit offset pagination filter
 Postgres --> Backend: PSQL: messages
 Backend --> Frontend: messages
 
 
-== Add message to dialog with real-time updating==
-Frontend -> Backend: HTPP POST: api/dialog/{id} (message_request) (auth_token)
-Backend -> Postgres: PSQL: get dialog by id
-Postgres --> Backend: PSQL: dialog
-Backend -> Postgres: PSQL: get user by token
+== Add message to chat with real-time updating==
+Frontend -> Backend: HTPP POST: api/chat/{id} (text + pic) (auth_token)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
+end alt
+
 Postgres --> Backend: PSQL: user
-Backend -> Backend: Check dialog existing
+Backend -> Backend: Check if text or pic not None
 
-alt dialog doesn't exist
-Backend --x Frontend: HTTP: 404
+alt text and pic is None
+Backend --x Frontend: HTTP: 400
 end alt
 
-Backend -> Backend: Check if user is a member of dialog
-
-alt user is not a member
-Backend --x Frontend: HTTP: 403
-end alt
-Backend -> Postgres: PSQL: insert new message to dialog.id
-Postgres --> Backend: PSQL: message.id
-Backend --> Frontend: WS: message.id
+Backend -> Postgres: PSQL: get chat by id
+Postgres --> Backend: PSQL: chat
+Backend -> Postgres: PSQL: insert new message to chat.id
+Postgres --> Backend: PSQL: message
+Backend -> Frontend: WS: message
+Frontend --> Backend: WS: ok
+Backend --> Frontend: HTTP: 201
 
 
 == Delete Message ==
