@@ -1,18 +1,20 @@
 @startuml
-entity Dialog {
+entity Chat {
 * pk
 __
-*create_at: datetime <<generated>>
-update_at: datetime <<generated>>
+*created_at: datetime <<generated>>
+updated_at: datetime <<generated>>
 }
 
 entity Message {
 * pk
 __
 *author_id: number <<FK>>
+*chat_id: number <<FK>>
+reply_to: number <<FK>>
 text: text
-picture: ???
-*send_at: datetime <<generated>>
+picture: path
+*sent_at: datetime <<generated>>
 }
 
 entity User {
@@ -20,40 +22,25 @@ entity User {
 __
 *email: text
 *password: text
-*register_date: Date <<generated>>
-update_date: Date
-profile_picture: ???
+*registered_date: Date <<generated>>
+name: text
+surname: text
+updated_date: Date
+profile_picture: path
 }
 
-entity DialogUser {
+entity ChatUser {
 * pk
 __
-* dialog_id: Number <<FK>>
+* chat_id: Number <<FK>>
 * user_id: Number <<FK>>
 }
 
-entity DialogMessage {
-* pk
-__
-* dialog_id: Number <<FK>>
-* message_id: Number <<FK>>
-}
 
-entity MessageMessage {
-* pk
-__
-* parent_message_id: Number <<FK>>
-* message_id: Number <<FK>>
-}
+ChatUser }|-- User
+ChatUser }|-- Chat
 
-DialogUser }|-- User
-DialogUser }|-- Dialog
 
-DialogMessage }|-- Message
-DialogMessage }|-- Dialog
-
-MessageMessage }|-- Message
-MessageMessage }|-- Message
-
-User ||--|| Message
+Message }|-- User
+Message }|-- Chat
 @enduml
