@@ -125,40 +125,42 @@ Backend --> Frontend: HTTP: new_message
 
 
 == Forward message ==
-Frontend -> Backend: HTTP PATCH: api/messages/{id} (dialog_id)
+Frontend -> Backend: HTTP PATCH: /api/messages/{id}/ (dialog_to_forward_id)
+Backend -> Postgres: PSQL: Get user by auth_token
+
+alt token not found
+Postgres --x Backend: PSQL: Not Found
+Backend --x Frontend: HTTP: 401
+end alt
+
+Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Get message by id
 Postgres --> Backend: PSQL: message_to_forward
-Backend -> Postgres: PSQL: get dialog by id
-Postgres --> Backend: PSQL: dialog
-Backend -> Backend: dialog.messages add message_to_forward
+Backend -> Postgres: PSQL: get dialog_to_forward by dialog_to_forward_id
+Postgres --> Backend: PSQL: dialog_to_forward
+Backend -> Backend: dialog_to_forward.messages add message_to_forward
 Backend -> Postgres: PSQL: Update entity
+Postgres --> OK
 Backend --> Frontend: HTTP: 204
 
 
 == Registration ==
-Frontend -> Backend: HTTP POST: api/auth/signup (registration_model)
-
-alt data is not valid
-Backend --x Frontend: HTTP: 422
-end alt
-
-
+Frontend -> Backend: HTTP POST: /api/auth/sign_up/ (registration_model)
 Backend -> Postgres: PSQL: Get user by registration_model.email
-Postgres --> Backend: PSQL: None
 
 alt User with similar email exists
-Backend --x Frontend: HTTP: 409
+Postgres --x Backend: PSQL: User
+Backend --x Frontend: HTTP: 400
 end alt
 
-Backend -> Backend: Create auth_token and implement this to reg_model
-Backend -> Backend: Cipher password and update reg_model
-Backend -> Postgres: PSQL: Insert new_user to DB
-Postgres --> Backend: PSQL: new_user.id
-Backend --> Frontend: HTTP: new_user.id
+Postgres --> Backend: PSQL: None
+Backend -> Postgres: PSQL: Insert new_user
+Postgres --> Backend: PSQL: new_user
+Backend --> Frontend: HTTP: new_user
 
 
 == login ==
-Frontend -> Backend: HTTP POST: api/auth/login (login_model)
+Frontend -> Backend: HTTP POST: /api/auth/login/ (login_model)
 Backend -> Postgres: PSQL: Get user by login_model.email
 Postgres --> Backend: PSQL: user_data_to_compare
 Backend -> Backend: Compare data from Frontend and Postgres
