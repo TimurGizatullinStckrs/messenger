@@ -46,27 +46,18 @@ Backend --> Frontend: HTTP: chat
 
 
 == Get messages with pagination ==
-Frontend -> Backend: HTTP GET: api/dialogs/{id}/count/{message_page} (auth_token)
-Backend -> Postgres: PSQL: get dialog by id
-Postgres --> Backend: PSQL: dialog
-Backend -> Postgres: PSQL: get user by token
+Frontend -> Backend: HTTP GET: /api/chats/{id}/messages/ (auth_token + limit + offset)
+Backend -> Postgres: PSQL: Get user by auth_token
 Postgres --> Backend: PSQL: user
-Backend -> Backend: Check dialog existing
 
-alt dialog doesn't exist
-Backend --x Frontend: HTTP: 404
+alt token not found
+Postgres --> Backend: PSQL: Not found
+Backend --> Frontend: HTTP: 401
 end alt
 
-Backend -> Backend: Check if user is a member of dialog
-
-alt user is unauthorized
-Backend --x Frontend: HTTP: 403
-end alt
-
-
-Backend -> Postgres: PSQL: get from (message_page*10) to (message_page*10+10) messages by diaolog.id
-Postgres --> Backend: PSQL: 10 messages
-Backend --> Frontend: 10 messages
+Backend -> Postgres: PSQL: get messages by chat.id with limit offset pagination filter
+Postgres --> Backend: PSQL: messages
+Backend --> Frontend: messages
 
 
 == Add message to dialog with real-time updating==
@@ -89,31 +80,6 @@ end alt
 Backend -> Postgres: PSQL: insert new message to dialog.id
 Postgres --> Backend: PSQL: message.id
 Backend --> Frontend: WS: message.id
-
-
-== Another way to add message to dialog with real-time updating==
-Frontend -> Backend: HTPP POST: api/dialog/{id} (message_request) (auth_token)
-Backend -> Postgres: PSQL: get dialog by id
-Postgres --> Backend: PSQL: dialog
-Backend -> Postgres: PSQL: get user by token
-Postgres --> Backend: PSQL: user
-Backend -> Backend: Check dialog existing
-
-alt dialog doesn't exist
-Backend --x Frontend: HTTP: 404
-end alt
-
-Backend -> Backend: Check if user is a member of dialog
-
-alt user is not a member
-Backend --x Frontend: HTTP: 403
-end alt
-
-Backend -> Postgres: PSQL: insert new message to dialog.id
-Postgres --> Backend: PSQL: message.id
-
-Backend -> Backend: WS: consume message
-Backend --> Frontend: WS: message
 
 
 == Delete Message ==
