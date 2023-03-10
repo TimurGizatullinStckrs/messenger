@@ -1,8 +1,8 @@
 from rest_framework import viewsets
 from rest_framework.response import Response
 
+from api.serializers import ChatSerializer
 from core.models import Chat
-from .serializers import ChatSerializer
 
 
 class ChatViewSet(viewsets.GenericViewSet):
