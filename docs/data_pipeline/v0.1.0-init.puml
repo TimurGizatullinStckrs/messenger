@@ -87,8 +87,7 @@ Backend -> Postgres: PSQL: get chat by id
 Postgres --> Backend: PSQL: chat
 Backend -> Postgres: PSQL: insert new message to chat
 Postgres --> Backend: PSQL: message
-Backend -> Frontend: WS: message
-Frontend --> Backend: WS: ok
+Backend -> Frontend: WS: "chat/id" group (new_message + messages)
 Backend --> Frontend: HTTP: 201
 
 
