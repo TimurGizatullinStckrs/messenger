@@ -92,7 +92,7 @@ Backend --> Frontend: HTTP: 201
 
 
 == Delete Message ==
-Frontend -> Backend: HTTP DELETE: /api/messages/{id}/ (auth_token)
+Frontend -> Backend: HTTP DELETE: /api/messages/{id}/ (auth_token + chat_id)
 Backend -> Postgres: PSQL: get user by auth_token
 
 alt token not found
@@ -103,8 +103,7 @@ end alt
 Postgres --> Backend: PSQL: user
 Backend -> Postgres: PSQL: Delete message by id
 Postgres --> Backend: PSQL: ok
-Backend -> Frontend: WS: message removed
-Frontend --> Backend: WS: ok
+Backend -> Frontend: WS: "chat/chat_id" group (messages)
 Backend --> Frontend: HTTP: 204
 
 
@@ -127,8 +126,7 @@ Backend -> Postgres: PSQL: get dialog by forward_to_id
 Postgres --> Backend: PSQL: dialog
 Backend -> Postgres: PSQL: Insert new_message
 Postgres --> Backend: PSQL: message
-Backend -> Frontend: WS: message
-Frontend --> Backend: WS: ok
+Backend -> Frontend: WS: "chat/forward_to_id" group (new_message + messages)
 Backend --> Frontend: HTTP: 201
 
 == Registration ==
