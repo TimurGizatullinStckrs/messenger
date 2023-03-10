@@ -5,6 +5,11 @@ participant Postgres
 participant Redis
 
 
+== WS connection ==
+Frontend -> Backend: WS: api/ws/chat/{id}/connect
+Backend -> Backend: create group "chat/id"
+Backend --> Frontend: WS: ok
+
 == get chats with last message==
 Frontend -> Backend: HTTP GET: /api/chats/ (auth_token)
 Backend -> Postgres: PSQL: Get user by token
