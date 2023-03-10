@@ -1,8 +1,5 @@
-from django.shortcuts import get_object_or_404
 from rest_framework import viewsets
-from rest_framework import permissions
 from rest_framework.response import Response
-from rest_framework.views import APIView
 
 from core.models import Chat
 from .serializers import ChatSerializer
