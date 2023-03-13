@@ -34,6 +34,7 @@ class UserManager(BaseUserManager):
 
 class User(AbstractUser):
     username = None
+    date_joined = None
     email = models.EmailField(max_length=255, unique=True, verbose_name="Почта пользователя")
     registered_at = models.DateTimeField(auto_now_add=True, verbose_name="Время регистрации")
     updated_at = models.DateTimeField(auto_now=True, null=True, verbose_name="Время последнего изменения профиля")
