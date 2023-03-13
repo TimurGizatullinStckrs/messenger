@@ -27,4 +27,4 @@ class AuthViewSet(viewsets.GenericViewSet):
     def filter_queryset(self, queryset: QuerySet) -> QuerySet:
         if self.action == 'create':
             email = self.request.data.get('email')
-            return super().filter_queryset().filter(email=email)
+            return super().filter_queryset(queryset).filter(email=email)
