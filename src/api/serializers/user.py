@@ -4,10 +4,10 @@ from core.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    def create(self, validated_data):
+    def create(self, data):
         user = User.objects.create_user(
-            email=validated_data['email'],
-            password=validated_data['password'],
+            email=data['email'],
+            password=data['password'],
         )
 
         return user
