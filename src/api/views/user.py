@@ -6,7 +6,7 @@ from api.serializers.user import UserSerializer
 from core.models import User
 
 
-class AuthViewSet(viewsets.GenericViewSet):
+class UserViewSet(viewsets.GenericViewSet):
     permission_classes = IsAuthenticated
 
     def list(self, request):
