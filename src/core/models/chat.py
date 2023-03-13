@@ -1,9 +1,9 @@
 from django.db import models
 
+from core.models.mixins import DateMixin
 
-class Chat(models.Model):
-    created_at = models.DateTimeField(auto_now_add=True, verbose_name="Время создания чата")
-    updated_at = models.DateTimeField(auto_now=True, null=True, verbose_name="Время последнего изменения чата")
+
+class Chat(models.Model, DateMixin):
     users = models.ManyToManyField('User', related_name="chats", verbose_name="Участники чата")
     last_message = models.ForeignKey('Message', related_name="last",
                                      on_delete=models.SET_NULL, verbose_name="Последнее сообщение чата")

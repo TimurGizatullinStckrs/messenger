@@ -1,7 +1,9 @@
 from django.db import models
 
+from core.models.mixins import DateMixin
 
-class Message(models.Model):
+
+class Message(models.Model, DateMixin):
     author = models.ForeignKey('User', on_delete=models.SET_NULL, related_name="messages", verbose_name="Отправитель")
     chat = models.ForeignKey('Chat', on_delete=models.CASCADE, related_name="history",
                              verbose_name="Чат, содержащий данное сообщение")
@@ -11,4 +13,3 @@ class Message(models.Model):
                                      verbose_name="Кем сообщение было переслано")
     text = models.CharField(max_length=255, null=True, verbose_name="Текст сообщения")
     picture = models.ImageField(null=True, verbose_name="Картинка сообщения")
-    sent_at = models.DateTimeField(auto_now_add=True, verbose_name="Время отправки сообщения")

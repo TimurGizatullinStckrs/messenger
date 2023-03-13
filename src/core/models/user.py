@@ -2,6 +2,8 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
+from core.models.mixins import DateMixin
+
 
 class UserManager(BaseUserManager):
     use_in_migrations = True
@@ -32,12 +34,10 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractUser):
+class User(AbstractUser, DateMixin):
     username = None
     date_joined = None
     email = models.EmailField(max_length=255, unique=True, verbose_name="Почта пользователя")
-    registered_at = models.DateTimeField(auto_now_add=True, verbose_name="Время регистрации")
-    updated_at = models.DateTimeField(auto_now=True, null=True, verbose_name="Время последнего изменения профиля")
     profile_picture = models.ImageField(verbose_name="Фотография профиля")
 
     objects = UserManager()
