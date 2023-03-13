@@ -9,7 +9,6 @@ class ChatSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Chat
-        fields = ['pk', 'users', 'last_message']
         depth = 1
 
     def get_last_message(self) -> Message:
