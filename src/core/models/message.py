@@ -1,10 +1,9 @@
 from django.db import models
 
-from api.serializers import ChatSerializer
-from core.models.mixins import DateMixin
+from core.models import CreatedAtUpdatedAtMixin
 
 
-class Message(models.Model, DateMixin):
+class Message(models.Model, CreatedAtUpdatedAtMixin):
     author = models.ForeignKey('User', on_delete=models.SET_NULL, related_name="messages", verbose_name="Отправитель")
     chat = models.ForeignKey('Chat', on_delete=models.CASCADE, related_name="history",
                              verbose_name="Чат, содержащий данное сообщение")

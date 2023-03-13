@@ -2,7 +2,7 @@ from django.contrib.auth.base_user import BaseUserManager
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-from core.models.mixins import DateMixin
+from core.models import CreatedAtUpdatedAtMixin
 
 
 class UserManager(BaseUserManager):
@@ -34,7 +34,7 @@ class UserManager(BaseUserManager):
         return self._create_user(email, password, **extra_fields)
 
 
-class User(AbstractUser, DateMixin):
+class User(AbstractUser, CreatedAtUpdatedAtMixin):
     username = None
     date_joined = None
     email = models.EmailField(max_length=255, unique=True, verbose_name="Почта пользователя")
