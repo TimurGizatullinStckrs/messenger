@@ -4,8 +4,8 @@ from core.models import User
 
 
 class UserSerializer(serializers.ModelSerializer):
-    snippets = serializers.PrimaryKeyRelatedField(many=True)
 
     class Meta:
         model = User
-        fields = ['pk', 'username', 'snippets']
+        fields = ['pk', 'username', 'password']
+        extra_kwargs = {'password': {'write_only': True}}
