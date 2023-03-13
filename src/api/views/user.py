@@ -9,7 +9,7 @@ from core.models import User
 class AuthViewSet(viewsets.GenericViewSet):
     permission_classes = AllowAny
 
-    def sign_in(self, request):
+    def create(self, request):
         email = request.data.get('email', None)
         password = request.data.get('password', None)
 
@@ -23,3 +23,8 @@ class AuthViewSet(viewsets.GenericViewSet):
         user = serializer.save()
 
         return Response(user, status=status.HTTP_201_CREATED)
+
+    def filter_queryset(self, queryset: QuerySet) -> QuerySet:
+        if self.action == 'create':
+            email = self.request.data.get('email')
+            return super().filter_queryset().filter(email=email)
