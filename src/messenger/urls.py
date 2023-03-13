@@ -7,7 +7,4 @@ from api.views import ChatViewSet
 router = routers.DefaultRouter()
 router.register(r'chats', ChatViewSet)
 
-urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include(router.urls))
-]
+urlpatterns = router.urls
