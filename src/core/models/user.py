@@ -38,7 +38,7 @@ class User(AbstractUser, DateMixin):
     username = None
     date_joined = None
     email = models.EmailField(max_length=255, unique=True, verbose_name="Почта пользователя")
-    profile_picture = models.ImageField(verbose_name="Фотография профиля")
+    profile_picture = models.ImageField(verbose_name="Фотография профиля", upload_to='user_profile_pictures')
 
     objects = UserManager()
 
