@@ -12,4 +12,4 @@ class Message(models.Model, CreatedAtUpdatedAtMixin):
     forwarded_by = models.ForeignKey('User', on_delete=models.SET("DELETED"), related_name="forwarded_messages",
                                      null=True, blank=True, verbose_name="Кем сообщение было переслано") #SET(ENUM.DELETED)???
     text = models.CharField(max_length=255, null=True, blank=True, verbose_name="Текст сообщения")
-    picture = models.ImageField(null=True, verbose_name="Картинка сообщения", upload_to='chat_pictures')
+    picture = models.ImageField(null=True, blank=True, verbose_name="Картинка сообщения", upload_to='chat_pictures')
